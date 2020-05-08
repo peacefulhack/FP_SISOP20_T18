@@ -4,6 +4,8 @@
 #include "fs.h"
 
 int iter = 0;
+int prod = 0;
+int prol = 0;
 
 char* fmtname(char *path)
 {
@@ -49,6 +51,8 @@ void ls(char *path)
   struct dirent de;
   struct stat st;
 
+  if(prol != 0 && prol < iter) return;
+
   if((fd = open(path, 0)) < 0){
     printf(2, "ls: cannot open %s\n", path);
     iter--;
@@ -84,17 +88,28 @@ void ls(char *path)
       if(stat(buf, &st) < 0){
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
-      }
-      if(strcmp(fmtname(buf), ".") !=32 && strcmp(fmtname(buf), ".") !=46){
-        for(int y=1;y<iter;y++){
-          printf(1, "  ");
-        }
-        printf(1, "|");
-        printf(1, "__%s\n",fmtname(buf)/*, st.type, st.ino, st.size*/);
-        if(st.type==1){
-          ls(buf);
+      }if(prod == 1){
+        if(strcmp(fmtname(buf), ".") !=32 && strcmp(fmtname(buf), ".") !=46 && st.type==1){
+          for(int y=1;y<iter;y++){
+            printf(1, "  ");
+          }
+          printf(1, "|");
+          printf(1, "__%s\n",fmtname(buf)/*, st.type, st.ino, st.size*/);
         }
       }
+      else{
+        if(strcmp(fmtname(buf), ".") !=32 && strcmp(fmtname(buf), ".") !=46){
+          for(int y=1;y<iter;y++){
+            printf(1, "  ");
+          }
+          printf(1, "|");
+          printf(1, "__%s\n",fmtname(buf)/*, st.type, st.ino, st.size*/);
+          if(st.type==1){
+            ls(buf);
+          }
+        }
+      }
+
     }
     break;
   }
@@ -110,7 +125,31 @@ int main(int argc, char *argv[])
     ls(".");
     exit();
   }
-  for(i=1; i<argc; i++)
-    ls(argv[i]);
-  exit();
+  for(i=1; i<argc; i++){
+    if (strcmp (argv[i], "-d") == 0){
+      prod = 1;
+      if(argc < 3){
+        ls(".");
+        exit();
+      }
+      ls(argv[i+1]);
+      exit();
+    }
+    else if (strcmp (argv[i], "-L") == 0){
+
+        char *a = argv[i+1];
+        int num = atoi(a);
+        prol = num;
+        if(argc < 4){
+          ls(".");
+          exit();
+        }
+        ls(argv[i+2]);
+        exit();
+    }
+    else{
+      ls(argv[i]);
+      exit();
+      }
+  }
 }
